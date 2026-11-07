@@ -1,0 +1,2156 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Dilma Quest — A Jornada Lendária (Edição Visual Master)</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;700&family=Press+Start+2P&display=swap" rel="stylesheet">
+  <style>
+    * {
+      box-sizing: border-box;
+      user-select: none;
+      -webkit-user-select: none;
+      margin: 0;
+      padding: 0;
+    }
+    html, body {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background: #050608;
+      font-family: 'Fredoka', sans-serif;
+      color: #fff;
+    }
+    #game-container {
+      position: relative;
+      width: 100vw;
+      height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      background: #000;
+    }
+    canvas {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      image-rendering: -webkit-optimize-contrast;
+      image-rendering: crisp-edges;
+    }
+
+    /* HUD ARCADE POLIDO */
+    #hud {
+      position: absolute;
+      top: 14px;
+      left: 16px;
+      right: 16px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      pointer-events: none;
+      z-index: 25;
+    }
+    .hud-group {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+    }
+    .hud-card {
+      background: rgba(12, 16, 28, 0.88);
+      border: 2px solid #ffd152;
+      border-radius: 16px;
+      padding: 6px 16px;
+      box-shadow: 0 4px 18px rgba(0, 0, 0, 0.6), inset 0 1px 1px rgba(255,255,255,0.2);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 15px;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+    }
+    .hud-btn {
+      pointer-events: auto;
+      cursor: pointer;
+      background: linear-gradient(180deg, #4834d4, #271981);
+      border: 2px solid #a29bfe;
+      color: #fff;
+      font-family: inherit;
+      font-weight: 700;
+      border-radius: 14px;
+      padding: 7px 16px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+      transition: all 0.2s;
+    }
+    .hud-btn:hover {
+      background: linear-gradient(180deg, #6852ed, #34249d);
+      transform: translateY(-2px);
+    }
+
+    /* MODAL DE GEOGRAFIA */
+    .modal-overlay {
+      position: absolute;
+      inset: 0;
+      background: rgba(4, 7, 15, 0.88);
+      backdrop-filter: blur(6px);
+      display: none;
+      justify-content: center;
+      align-items: center;
+      z-index: 60;
+      padding: 20px;
+    }
+    .modal-box {
+      background: linear-gradient(145deg, #1e272e, #0f1418);
+      border: 3px solid #ffd152;
+      border-radius: 22px;
+      width: 95%;
+      max-width: 620px;
+      padding: 26px;
+      box-shadow: 0 14px 40px rgba(0, 0, 0, 0.9), 0 0 30px rgba(255, 209, 82, 0.25);
+      text-align: center;
+      animation: popIn 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+    @keyframes popIn {
+      0% { transform: scale(0.85); opacity: 0; }
+      100% { transform: scale(1); opacity: 1; }
+    }
+    .modal-title {
+      font-size: 23px;
+      color: #ffd152;
+      margin-bottom: 12px;
+      font-weight: 700;
+      text-shadow: 0 2px 4px rgba(0,0,0,0.6);
+    }
+    .modal-text {
+      font-size: 18px;
+      line-height: 1.45;
+      margin-bottom: 20px;
+      color: #f1f2f6;
+    }
+    .options-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 10px;
+      margin-bottom: 12px;
+    }
+    .opt-btn {
+      background: #2f3640;
+      color: #fff;
+      border: 2px solid #57606f;
+      padding: 13px 18px;
+      border-radius: 14px;
+      font-size: 16px;
+      font-family: inherit;
+      font-weight: 600;
+      cursor: pointer;
+      text-align: left;
+      transition: all 0.15s;
+    }
+    .opt-btn:hover {
+      background: #404b5a;
+      border-color: #ffd152;
+      transform: translateX(6px);
+    }
+    .opt-btn.correct {
+      background: #2ed573 !important;
+      border-color: #7bed9f !important;
+      color: #0c2e17 !important;
+      font-weight: 700;
+    }
+    .opt-btn.wrong {
+      background: #ff4757 !important;
+      border-color: #ff6b81 !important;
+      color: #fff !important;
+    }
+
+    /* TOAST DE CARINHO (CORAÇÕES) */
+    #heart-toast {
+      position: absolute;
+      bottom: 85px;
+      left: 50%;
+      transform: translateX(-50%) translateY(60px);
+      background: linear-gradient(135deg, #ff4757, #c0133c);
+      border: 3px solid #ffffff;
+      color: #fff;
+      padding: 15px 28px;
+      border-radius: 35px;
+      font-size: 17px;
+      font-weight: 700;
+      text-align: center;
+      max-width: 86%;
+      box-shadow: 0 10px 30px rgba(255, 71, 87, 0.55);
+      opacity: 0;
+      pointer-events: none;
+      transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      z-index: 40;
+    }
+    #heart-toast.show {
+      transform: translateX(-50%) translateY(0);
+      opacity: 1;
+    }
+
+    /* CONTROLES MOBILE */
+    #mobile-controls {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      z-index: 35;
+      display: none;
+    }
+    .touch-btn {
+      position: absolute;
+      width: 70px;
+      height: 70px;
+      background: rgba(255, 255, 255, 0.2);
+      border: 2px solid rgba(255, 255, 255, 0.6);
+      border-radius: 50%;
+      pointer-events: auto;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-size: 28px;
+      color: #fff;
+      backdrop-filter: blur(5px);
+      box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+    }
+    .touch-btn:active {
+      background: rgba(255, 209, 82, 0.6);
+      transform: scale(0.92);
+    }
+    #m-left { bottom: 25px; left: 25px; }
+    #m-right { bottom: 25px; left: 110px; }
+    #m-jump { bottom: 25px; right: 25px; background: rgba(46, 213, 115, 0.35); }
+    #m-attack { bottom: 110px; right: 25px; background: rgba(255, 71, 87, 0.45); display: none; }
+
+    /* TELAS (START, VICTORY) */
+    .screen-overlay {
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(circle at center, rgba(19, 24, 38, 0.94), rgba(6, 8, 14, 0.98));
+      z-index: 50;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      text-align: center;
+      padding: 30px;
+    }
+    .btn-main {
+      margin-top: 25px;
+      padding: 16px 42px;
+      font-size: 21px;
+      font-weight: 700;
+      font-family: inherit;
+      background: linear-gradient(45deg, #ffd152, #ff9f1a);
+      color: #120b24;
+      border: none;
+      border-radius: 40px;
+      cursor: pointer;
+      box-shadow: 0 8px 25px rgba(255, 209, 82, 0.45);
+      transition: all 0.2s;
+    }
+    .btn-main:hover {
+      transform: scale(1.05);
+      box-shadow: 0 10px 30px rgba(255, 209, 82, 0.75);
+    }
+  </style>
+</head>
+<body>
+
+<div id="game-container">
+  <canvas id="gameCanvas" width="960" height="540"></canvas>
+
+  <!-- HUD -->
+  <div id="hud">
+    <div class="hud-group">
+      <div class="hud-card">
+        <span>⭐ FASE</span>
+        <span id="hud-phase" style="color:#ffd152">1 / 5</span>
+      </div>
+      <div class="hud-card">
+        <span id="hud-goal-icon">📚</span>
+        <span id="hud-goal">0 / 5</span>
+      </div>
+      <div class="hud-card" style="color:#ff6b81">
+        <span>❤️</span>
+        <span id="hud-lives">3</span>
+      </div>
+    </div>
+    <div class="hud-group">
+      <div class="hud-card" style="color:#2ed573;">
+        <span>🏆 PONTOS:</span>
+        <span id="hud-score">0</span>
+      </div>
+      <button class="hud-btn" id="btn-fullscreen">⛶ Tela Cheia</button>
+      <button class="hud-btn" id="btn-sound">🔊</button>
+    </div>
+  </div>
+
+  <!-- Toast Carinho -->
+  <div id="heart-toast">
+    <div style="font-size:13px; opacity:0.9; margin-bottom:4px;">❤️ Mensagem da Turma do 6º B:</div>
+    <div id="toast-body">"Professora Dilma, seu carinho ilumina nossa sala!"</div>
+  </div>
+
+  <!-- Modal Interativo de Geografia -->
+  <div class="modal-overlay" id="quiz-modal">
+    <div class="modal-box">
+      <div class="modal-title" id="quiz-title">🌎 DESAFIO DE GEOGRAFIA</div>
+      <div class="modal-text" id="quiz-question">Carregando pergunta...</div>
+      <div class="options-grid" id="quiz-options"></div>
+      <div id="quiz-feedback" style="font-size:16px; font-weight:bold; min-height:22px;"></div>
+    </div>
+  </div>
+
+  <!-- Controles Mobile Touch -->
+  <div id="mobile-controls">
+    <div class="touch-btn" id="m-left">◀</div>
+    <div class="touch-btn" id="m-right">▶</div>
+    <div class="touch-btn" id="m-jump">▲</div>
+    <div class="touch-btn" id="m-attack">🖊️</div>
+  </div>
+
+  <!-- Tela Inicial -->
+  <div class="screen-overlay" id="start-screen">
+    <h1 style="font-size:42px; color:#ffd152; text-shadow:0 0 25px rgba(255,209,82,0.6); margin-bottom:10px;">
+      🎮 DILMA QUEST
+    </h1>
+    <h3 style="font-size:20px; color:#a29bfe; margin-bottom:20px;">
+      A Jornada Lendária — Homenagem da Turma do 6º B
+    </h3>
+    <p style="max-width:560px; font-size:16px; color:#dfe6e9; line-height:1.6; margin-bottom:15px;">
+      Explore a <b>Floresta Encantada</b>, enfrente o desafio sob a <b>Lua Noturna</b>, viaje pelo doce <b>Mundo de Confeitaria</b>, atravesse as <b>Cavernas de Cristal</b> e derrote o terrível Devorador das Sombras com o seu <b>Poderoso Canetão de Professora</b>!
+    </p>
+    <button class="btn-main" id="btn-start">INICIAR AVENTURA</button>
+  </div>
+
+  <!-- Tela de Vitória Final -->
+  <div class="screen-overlay" id="victory-screen" style="display:none;">
+    <h1 style="font-size:38px; color:#ffd152; margin-bottom:14px;">🎉 VITÓRIA LENDÁRIA! 🎉</h1>
+    <h2 style="font-size:24px; color:#ff7675; max-width:650px; line-height:1.4; margin-bottom:15px;">
+      "Professora Dilma, a gente nunca vai esquecer de você."
+    </h2>
+    <p style="font-size:18px; color:#dfe6e9; max-width:600px; line-height:1.5; margin-bottom:15px;">
+      Obrigado por cada ensinamento, cada conselho e cada momento. Esta aventura foi feita com muito carinho para você!
+    </p>
+    <div style="font-family:'Press Start 2P', monospace; font-size:13px; color:#ffd152; margin-bottom:20px; letter-spacing:1px;">
+      UMA HOMENAGEM DA TURMA DO 6º B.
+    </div>
+
+    <div style="background:rgba(255,255,255,0.08); padding:10px 24px; border-radius:14px; margin-bottom:15px; font-size:15px;">
+      Jornadas Concluídas: <b id="stat-journeys" style="color:#ffd152">1</b> | Pontuação Final: <b id="stat-score" style="color:#2ed573">0</b>
+    </div>
+
+    <button class="btn-main" id="btn-restart">COMEÇAR NOVA JORNADA 🔁</button>
+  </div>
+</div>
+
+<script>
+/**
+ * DILMA QUEST — EDIÇÃO VISUAL MASTER DEFINITIVA
+ * Direção de Arte Completa para as 5 Fases
+ */
+
+// ==========================================
+// 1. ÁUDIO SINTETIZADO (Web Audio)
+// ==========================================
+class SoundFX {
+  constructor() {
+    this.ctx = null;
+    this.enabled = true;
+  }
+  init() {
+    if (!this.ctx) {
+      const AudioCtx = window.AudioContext || window.webkitAudioContext;
+      this.ctx = new AudioCtx();
+    }
+    if (this.ctx && this.ctx.state === 'suspended') {
+      this.ctx.resume();
+    }
+  }
+  playJump() {
+    if (!this.enabled || !this.ctx) return;
+    const now = this.ctx.currentTime;
+    const osc = this.ctx.createOscillator();
+    const gain = this.ctx.createGain();
+    osc.type = 'triangle';
+    osc.frequency.setValueAtTime(140, now);
+    osc.frequency.exponentialRampToValueAtTime(420, now + 0.14);
+    gain.gain.setValueAtTime(0.2, now);
+    gain.gain.linearRampToValueAtTime(0, now + 0.14);
+    osc.connect(gain);
+    gain.connect(this.ctx.destination);
+    osc.start();
+    osc.stop(now + 0.14);
+  }
+  playCollect() {
+    if (!this.enabled || !this.ctx) return;
+    const now = this.ctx.currentTime;
+    [523.25, 659.25, 783.99, 1046.50].forEach((freq, i) => {
+      const osc = this.ctx.createOscillator();
+      const gain = this.ctx.createGain();
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(freq, now + i * 0.04);
+      gain.gain.setValueAtTime(0.15, now + i * 0.04);
+      gain.gain.linearRampToValueAtTime(0, now + (i + 1) * 0.07);
+      osc.connect(gain);
+      gain.connect(this.ctx.destination);
+      osc.start(now + i * 0.04);
+      osc.stop(now + (i + 1) * 0.07);
+    });
+  }
+  playShoot() {
+    if (!this.enabled || !this.ctx) return;
+    const now = this.ctx.currentTime;
+    const osc = this.ctx.createOscillator();
+    const gain = this.ctx.createGain();
+    osc.type = 'sawtooth';
+    osc.frequency.setValueAtTime(550, now);
+    osc.frequency.exponentialRampToValueAtTime(120, now + 0.1);
+    gain.gain.setValueAtTime(0.18, now);
+    gain.gain.linearRampToValueAtTime(0, now + 0.1);
+    osc.connect(gain);
+    gain.connect(this.ctx.destination);
+    osc.start();
+    osc.stop(now + 0.1);
+  }
+  playHit() {
+    if (!this.enabled || !this.ctx) return;
+    const now = this.ctx.currentTime;
+    const osc = this.ctx.createOscillator();
+    const gain = this.ctx.createGain();
+    osc.type = 'square';
+    osc.frequency.setValueAtTime(130, now);
+    osc.frequency.linearRampToValueAtTime(45, now + 0.15);
+    gain.gain.setValueAtTime(0.25, now);
+    gain.gain.linearRampToValueAtTime(0, now + 0.15);
+    osc.connect(gain);
+    gain.connect(this.ctx.destination);
+    osc.start();
+    osc.stop(now + 0.15);
+  }
+  playPhaseComplete() {
+    if (!this.enabled || !this.ctx) return;
+    const now = this.ctx.currentTime;
+    [440, 554.37, 659.25, 880].forEach((freq, idx) => {
+      const osc = this.ctx.createOscillator();
+      const gain = this.ctx.createGain();
+      osc.type = 'triangle';
+      osc.frequency.setValueAtTime(freq, now + idx * 0.08);
+      gain.gain.setValueAtTime(0.2, now + idx * 0.08);
+      gain.gain.linearRampToValueAtTime(0, now + idx * 0.08 + 0.35);
+      osc.connect(gain);
+      gain.connect(this.ctx.destination);
+      osc.start(now + idx * 0.08);
+      osc.stop(now + idx * 0.08 + 0.35);
+    });
+  }
+  playCorrect() { this.playPhaseComplete(); }
+  playWrong() {
+    if (!this.enabled || !this.ctx) return;
+    const now = this.ctx.currentTime;
+    const osc = this.ctx.createOscillator();
+    const gain = this.ctx.createGain();
+    osc.type = 'sawtooth';
+    osc.frequency.setValueAtTime(150, now);
+    osc.frequency.linearRampToValueAtTime(80, now + 0.25);
+    gain.gain.setValueAtTime(0.22, now);
+    gain.gain.linearRampToValueAtTime(0, now + 0.25);
+    osc.connect(gain);
+    gain.connect(this.ctx.destination);
+    osc.start();
+    osc.stop(now + 0.25);
+  }
+  playVictory() {
+    if (!this.enabled || !this.ctx) return;
+    const now = this.ctx.currentTime;
+    [523.25, 659.25, 783.99, 1046.50, 1318.51].forEach((f, i) => {
+      const osc = this.ctx.createOscillator();
+      const gain = this.ctx.createGain();
+      osc.type = 'triangle';
+      osc.frequency.setValueAtTime(f, now + i * 0.12);
+      gain.gain.setValueAtTime(0.22, now + i * 0.12);
+      gain.gain.linearRampToValueAtTime(0, now + i * 0.12 + 0.6);
+      osc.connect(gain);
+      gain.connect(this.ctx.destination);
+      osc.start(now + i * 0.12);
+      osc.stop(now + i * 0.12 + 0.6);
+    });
+  }
+}
+const sfx = new SoundFX();
+
+// ==========================================
+// 2. BANCOS DE PERGUNTAS E HOMENAGENS
+// ==========================================
+class GeographyQuestionBank {
+  constructor() {
+    this.estadosBrasil = [
+      { e: "Acre", c: "Rio Branco" }, { e: "Alagoas", c: "Maceió" },
+      { e: "Amapá", c: "Macapá" }, { e: "Amazonas", c: "Manaus" },
+      { e: "Bahia", c: "Salvador" }, { e: "Ceará", c: "Fortaleza" },
+      { e: "Espírito Santo", c: "Vitória" }, { e: "Goiás", c: "Goiânia" },
+      { e: "Maranhão", c: "São Luís" }, { e: "Mato Grosso", c: "Cuiabá" },
+      { e: "Mato Grosso do Sul", c: "Campo Grande" }, { e: "Minas Gerais", c: "Belo Horizonte" },
+      { e: "Pará", c: "Belém" }, { e: "Paraíba", c: "João Pessoa" },
+      { e: "Paraná", c: "Curitiba" }, { e: "Pernambuco", c: "Recife" },
+      { e: "Piauí", c: "Teresina" }, { e: "Rio de Janeiro", c: "Rio de Janeiro" },
+      { e: "Rio Grande do Norte", c: "Natal" }, { e: "Rio Grande do Sul", c: "Porto Alegre" },
+      { e: "Rondônia", c: "Porto Velho" }, { e: "Roraima", c: "Boa Vista" },
+      { e: "Santa Catarina", c: "Florianópolis" }, { e: "São Paulo", c: "São Paulo" },
+      { e: "Sergipe", c: "Aracaju" }, { e: "Tocantins", c: "Palmas" }
+    ];
+    this.paisesMundo = [
+      { p: "França", c: "Paris" }, { p: "Alemanha", c: "Berlim" },
+      { p: "Japão", c: "Tóquio" }, { p: "Canadá", c: "Ottawa" },
+      { p: "Argentina", c: "Buenos Aires" }, { p: "Egito", c: "Cairo" },
+      { p: "Austrália", c: "Camberra" }, { p: "Portugal", c: "Lisboa" },
+      { p: "Itália", c: "Roma" }, { p: "Chile", c: "Santiago" }
+    ];
+    this.conceitos = [
+      { q: "Maior bacia hidrográfica do planeta Terra em volume de água:", a: "Bacia Amazônica", err: ["Bacia do Rio Nilo", "Bacia do Paraná", "Bacia do Mississipi"] },
+      { q: "Linha imaginária que divide a Terra em Hemisfério Norte e Sul:", a: "Linha do Equador", err: ["Meridiano de Greenwich", "Trópico de Câncer", "Círculo Polar Ártico"] },
+      { q: "Meridiano principal adotado como referência de longitude 0°:", a: "Meridiano de Greenwich", err: ["Linha do Equador", "Trópico de Capricórnio", "Fuso de Brasília"] },
+      { q: "Bioma brasileiro exclusivamente nosso, semiárido e com cactos:", a: "Caatinga", err: ["Pampa", "Floresta Amazônica", "Pantanal"] },
+      { q: "Ponto mais alto do relevo brasileiro:", a: "Pico da Neblina", err: ["Pico da Bandeira", "Monte Roraima", "Pico das Agulhas Negras"] },
+      { q: "Instrumento clássico de orientação que mostra os pontos cardeais:", a: "Rosa dos Ventos", err: ["Termômetro", "Barômetro", "Higrômetro"] }
+    ];
+  }
+  getQuestion(offset = 0) {
+    const seed = (Math.floor(Math.random() * 6000) + offset) % 6000;
+    if (seed < 2500) {
+      const item = this.estadosBrasil[seed % this.estadosBrasil.length];
+      const errs = this.estadosBrasil.filter(x => x.c !== item.c).map(x => x.c).sort(() => 0.5 - Math.random()).slice(0, 3);
+      return {
+        id: `br_${item.e}_${seed}`,
+        question: `Qual é a capital do estado brasileiro do(a) ${item.e}?`,
+        answer: item.c,
+        options: [...errs, item.c].sort(() => 0.5 - Math.random())
+      };
+    } else if (seed < 4500) {
+      const item = this.paisesMundo[(seed - 2500) % this.paisesMundo.length];
+      const errs = this.paisesMundo.filter(x => x.c !== item.c).map(x => x.c).sort(() => 0.5 - Math.random()).slice(0, 3);
+      return {
+        id: `wd_${item.p}_${seed}`,
+        question: `Qual é a capital de ${item.p}?`,
+        answer: item.c,
+        options: [...errs, item.c].sort(() => 0.5 - Math.random())
+      };
+    } else {
+      const item = this.conceitos[(seed - 4500) % this.conceitos.length];
+      return {
+        id: `cc_${seed}`,
+        question: item.q,
+        answer: item.a,
+        options: [...item.err, item.a].sort(() => 0.5 - Math.random())
+      };
+    }
+  }
+  getFiveQuestions() {
+    const list = [];
+    const used = new Set();
+    let tries = 0;
+    while (list.length < 5 && tries < 100) {
+      const q = this.getQuestion(tries * 23);
+      if (!used.has(q.id)) {
+        used.add(q.id);
+        list.push(q);
+      }
+      tries++;
+    }
+    return list;
+  }
+}
+
+class HeartMessageBank {
+  constructor() {
+    this.aberturas = [
+      "Querida Professora Dilma,",
+      "Para a professora mais especial:",
+      "Com imenso carinho da Turma do 6º B:",
+      "Professora Dilma, nossa eterna inspiração:",
+      "Com todo carinho e gratidão:"
+    ];
+    this.meios = [
+      "suas aulas abriram nossos horizontes para o mundo",
+      "sua dedicação e paciência transformaram o nosso ano letivo",
+      "cada mapa estudado ganhou vida com o seu amor por ensinar",
+      "seus ensinamentos e conselhos vão nos acompanhar para sempre",
+      "sua alegria contagiante tornava até os dias difíceis mais leves"
+    ];
+    this.fechamentos = [
+      "muito obrigado por acreditar em cada um de nós! ❤️",
+      "a gente te ama muito e somos gratos eternamente! 🌟",
+      "você deixou uma marca linda na história da nossa turma! 👏",
+      "o 6º B tem um orgulho imenso de ser seus alunos! ✨"
+    ];
+  }
+  getMessage(seed) {
+    const a = this.aberturas[seed % this.aberturas.length];
+    const m = this.meios[Math.floor(seed / 5) % this.meios.length];
+    const f = this.fechamentos[Math.floor(seed / 25) % this.fechamentos.length];
+    return `${a} ${m}... ${f}`;
+  }
+  getFiveMessages() {
+    const list = [];
+    const base = Math.floor(Math.random() * 5000);
+    for (let i = 0; i < 5; i++) {
+      list.push(this.getMessage(base + i * 47));
+    }
+    return list;
+  }
+}
+
+// ==========================================
+// 3. MOTOR DO JOGO & VARIÁVEIS VISUAIS
+// ==========================================
+const canvas = document.getElementById('gameCanvas');
+const ctx = canvas.getContext('2d');
+
+const geoBank = new GeographyQuestionBank();
+const heartBank = new HeartMessageBank();
+
+let currentJourney = parseInt(localStorage.getItem('dilma_journeys') || '0', 10);
+let totalScore = parseInt(localStorage.getItem('dilma_score') || '0', 10);
+
+const GAME_STATE = {
+  phase: 1,
+  score: 0,
+  lives: 3,
+  paused: false,
+  over: false,
+  won: false,
+  objectiveCount: 0,
+  items: [],
+  traps: [],
+  platforms: [],
+  projectiles: [],
+  particles: [],
+  ambientEntities: [], // Borboletas, vagalumes, estrelas, brasas
+  boss: null,
+
+  dilmaAvatarImg: null,
+
+  transitioning: false,
+  transitionAlpha: 0,
+  transitionTimer: 0,
+  transitionBanner: "",
+  nextPhaseTarget: 1
+};
+
+// Carrega automaticamente a foto da Professora Dilma
+const autoImg = new Image();
+autoImg.src = 'dilma.png';
+autoImg.onerror = () => {
+  if (!autoImg.src.endsWith('.jpg') && !autoImg.src.endsWith('.jpeg')) {
+    autoImg.src = 'dilma.jpg';
+  }
+};
+GAME_STATE.dilmaAvatarImg = autoImg;
+
+// ==========================================
+// 4. PERSONAGEM: PROFESSORA DILMA
+// ==========================================
+const player = {
+  x: 80,
+  y: 380,
+  w: 42,
+  h: 68,
+  vx: 0,
+  vy: 0,
+  speed: 4.8,
+  jumpStrength: -12.4,
+  grounded: false,
+  facing: 1,
+  animTime: 0,
+  squishY: 1,
+  invulnerableTime: 0,
+  attackCooldown: 0,
+  coyoteTimer: 0,
+  jumpBufferTimer: 0,
+
+  reset(x = 80, y = 380) {
+    this.x = x;
+    this.y = y;
+    this.vx = 0;
+    this.vy = 0;
+    this.grounded = false;
+    this.facing = 1;
+    this.invulnerableTime = 0;
+    this.squishY = 1;
+  },
+
+  draw() {
+    ctx.save();
+    ctx.translate(this.x + this.w / 2, this.y + this.h);
+
+    if (this.invulnerableTime > 0 && Math.floor(Date.now() / 80) % 2 === 0) {
+      ctx.globalAlpha = 0.45;
+    }
+
+    ctx.scale(this.facing, this.squishY);
+    ctx.translate(0, -this.h);
+
+    // Sombra suave sob os pés
+    if (this.grounded) {
+      ctx.fillStyle = "rgba(0, 0, 0, 0.28)";
+      ctx.beginPath();
+      ctx.ellipse(0, 68, 18, 5, 0, 0, Math.PI * 2);
+      ctx.fill();
+    }
+
+    // Corpo elegante: Blazer Azul Petróleo com dobras
+    ctx.fillStyle = "#1e3799";
+    ctx.beginPath();
+    ctx.roundRect(-16, 24, 32, 26, [4, 4, 2, 2]);
+    ctx.fill();
+
+    // Detalhe de gola e lapela
+    ctx.fillStyle = "#0c2461";
+    ctx.beginPath();
+    ctx.moveTo(-16, 24);
+    ctx.lineTo(-4, 40);
+    ctx.lineTo(-12, 48);
+    ctx.fill();
+    ctx.beginPath();
+    ctx.moveTo(16, 24);
+    ctx.lineTo(4, 40);
+    ctx.lineTo(12, 48);
+    ctx.fill();
+
+    // Lenço Dourado
+    ctx.fillStyle = "#ffd152";
+    ctx.beginPath();
+    ctx.moveTo(-7, 24);
+    ctx.lineTo(7, 24);
+    ctx.lineTo(0, 35);
+    ctx.fill();
+
+    // Saia executiva grafite
+    ctx.fillStyle = "#2f3542";
+    ctx.fillRect(-15, 48, 30, 9);
+
+    // Pernas animadas com sapatos pretos
+    const legOffset = Math.sin(this.animTime) * 6;
+    ctx.fillStyle = "#2f3542";
+    ctx.fillRect(-12, 57, 8, 12 + (this.grounded && Math.abs(this.vx) > 0.1 ? legOffset : 0));
+    ctx.fillRect(4, 57, 8, 12 - (this.grounded && Math.abs(this.vx) > 0.1 ? legOffset : 0));
+
+    // Sapatinhos elegantes
+    ctx.fillStyle = "#1e272e";
+    ctx.fillRect(-14, 66 + (this.grounded && Math.abs(this.vx) > 0.1 ? legOffset : 0), 10, 4);
+    ctx.fillRect(4, 66 - (this.grounded && Math.abs(this.vx) > 0.1 ? legOffset : 0), 10, 4);
+
+    // CABEÇA: FOTO OFICIAL DA PROFESSORA DILMA
+    const hasPhoto = GAME_STATE.dilmaAvatarImg && GAME_STATE.dilmaAvatarImg.complete && GAME_STATE.dilmaAvatarImg.naturalWidth > 0;
+
+    if (hasPhoto) {
+      ctx.save();
+      ctx.beginPath();
+      ctx.arc(0, 8, 22, 0, Math.PI * 2);
+      ctx.fillStyle = "#fff";
+      ctx.fill();
+      ctx.clip();
+      ctx.drawImage(GAME_STATE.dilmaAvatarImg, -23, -15, 46, 46);
+      ctx.restore();
+
+      // Borda decorativa dourada refinada
+      ctx.strokeStyle = "#ffd152";
+      ctx.lineWidth = 2.5;
+      ctx.beginPath();
+      ctx.arc(0, 8, 22, 0, Math.PI * 2);
+      ctx.stroke();
+    } else {
+      // Ilustração estilizada da professora
+      ctx.fillStyle = "#4a2810";
+      ctx.beginPath();
+      ctx.arc(0, 6, 22, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.fillStyle = "#f8c291";
+      ctx.beginPath();
+      ctx.arc(0, 8, 16, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.strokeStyle = "#e84118";
+      ctx.lineWidth = 2.2;
+      ctx.strokeRect(-9, 4, 7, 6);
+      ctx.strokeRect(2, 4, 7, 6);
+
+      ctx.strokeStyle = "#c0392b";
+      ctx.beginPath();
+      ctx.arc(0, 14, 5, 0.1, Math.PI - 0.1);
+      ctx.stroke();
+    }
+
+    // ARMA ESPECIAL: O PODEROSO CANETÃO GIGANTE!
+    ctx.save();
+    ctx.translate(14, 32);
+    const penRecoil = this.attackCooldown > 0 ? -0.45 : 0.2;
+    ctx.rotate(penRecoil);
+
+    // Corpo metálico do marcador
+    const markerGrad = ctx.createLinearGradient(0, -7, 0, 7);
+    markerGrad.addColorStop(0, "#ff4757");
+    markerGrad.addColorStop(0.5, "#ff6b81");
+    markerGrad.addColorStop(1, "#c0133c");
+    ctx.fillStyle = markerGrad;
+    ctx.fillRect(0, -7, 36, 14);
+
+    ctx.fillStyle = "#ffffff";
+    ctx.fillRect(20, -6, 5, 12);
+    ctx.fillStyle = "#ffd152";
+    ctx.fillRect(4, -4, 12, 8);
+
+    // Ponta chanfrada azulada com brilho
+    ctx.fillStyle = "#2ed573";
+    ctx.beginPath();
+    ctx.moveTo(36, -7);
+    ctx.lineTo(47, -1);
+    ctx.lineTo(36, 5);
+    ctx.fill();
+
+    ctx.restore();
+    ctx.restore();
+  }
+};
+
+// ==============================================================
+// 5. CHEFÃO RECONSTRUÍDO: O DEVORADOR DAS SOMBRAS (ARTE MÁXIMA)
+// ==============================================================
+class ShadowBoss {
+  constructor() {
+    this.x = 670;
+    this.y = 220;
+    this.w = 150;
+    this.h = 160;
+    this.maxHp = 100;
+    this.hp = 100;
+
+    this.state = 'FLOAT';
+    this.stateTimer = 0;
+    this.floatAngle = 0;
+    this.hitFlash = 0;
+  }
+
+  takeDamage(amount) {
+    if (this.hp <= 0) return;
+    this.hp -= amount;
+    this.hitFlash = 6;
+    sfx.playHit();
+    if (this.hp <= 0) {
+      this.hp = 0;
+      this.state = 'DEAD';
+      triggerVictory();
+    }
+  }
+
+  update() {
+    if (this.state === 'DEAD') return;
+
+    this.stateTimer++;
+    this.floatAngle += 0.04;
+    if (this.hitFlash > 0) this.hitFlash--;
+
+    const isEnraged = this.hp < 50;
+
+    switch (this.state) {
+      case 'FLOAT':
+        this.y = 210 + Math.sin(this.floatAngle) * 35;
+        if (this.stateTimer > (isEnraged ? 70 : 120)) {
+          this.state = Math.random() > 0.5 ? 'CHASE' : 'TELEGRAPH';
+          this.stateTimer = 0;
+        }
+        break;
+
+      case 'CHASE':
+        const desiredX = player.x > 450 ? 180 : 680;
+        this.x += (desiredX - this.x) * 0.035;
+        this.y = 200 + Math.sin(this.floatAngle * 1.5) * 20;
+
+        if (this.stateTimer > (isEnraged ? 60 : 90)) {
+          this.state = 'TELEGRAPH';
+          this.stateTimer = 0;
+        }
+        break;
+
+      case 'TELEGRAPH':
+        if (this.stateTimer % 4 === 0) {
+          addParticles(this.x + this.w / 2, this.y + this.h / 2, "#9b59b6", 4);
+        }
+        if (this.stateTimer > 40) {
+          this.state = (Math.random() > 0.4 || isEnraged) ? 'ATTACK_ORBS' : 'ATTACK_SLAM';
+          this.stateTimer = 0;
+        }
+        break;
+
+      case 'ATTACK_ORBS':
+        const shots = isEnraged ? 3 : 2;
+        for (let s = 0; s < shots; s++) {
+          const angle = Math.PI - 0.3 + (s * 0.3);
+          GAME_STATE.projectiles.push({
+            x: this.x + 20,
+            y: this.y + 70,
+            vx: Math.cos(angle) * (isEnraged ? 6.2 : 5.0),
+            vy: Math.sin(angle) * 3,
+            r: 12,
+            color: "#e84118",
+            fromBoss: true
+          });
+        }
+        this.state = 'FLOAT';
+        this.stateTimer = 0;
+        break;
+
+      case 'ATTACK_SLAM':
+        this.y += 12;
+        if (this.y >= 340) {
+          this.y = 340;
+          GAME_STATE.projectiles.push({
+            x: this.x,
+            y: 435,
+            vx: -6.5,
+            vy: 0,
+            r: 18,
+            color: "#371b4a",
+            fromBoss: true
+          });
+          addParticles(this.x, 440, "#e74c3c", 25);
+          sfx.playHit();
+          this.state = 'FLOAT';
+          this.stateTimer = 0;
+        }
+        break;
+    }
+  }
+
+  draw() {
+    ctx.save();
+    ctx.translate(this.x + this.w / 2, this.y + this.h / 2);
+
+    // Chamas escuras ao redor do monstro
+    const isEnraged = this.hp < 50;
+    const coreGrad = ctx.createRadialGradient(0, 0, 20, 0, 0, 75);
+    coreGrad.addColorStop(0, this.hitFlash > 0 ? "#ffffff" : (isEnraged ? "#c0392b" : "#481566"));
+    coreGrad.addColorStop(0.7, "#1a0826");
+    coreGrad.addColorStop(1, "rgba(5, 2, 8, 0)");
+
+    ctx.fillStyle = coreGrad;
+    ctx.beginPath();
+    ctx.arc(0, 0, 80 + Math.sin(this.floatAngle * 3) * 6, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Múltiplos Tentáculos Orgânicos com Sombreamento
+    ctx.lineWidth = 10;
+    ctx.lineCap = "round";
+    for (let i = 0; i < 8; i++) {
+      const ang = (i * Math.PI) / 4 + this.floatAngle;
+      ctx.strokeStyle = i % 2 === 0 ? "#2d0c40" : "#6c1c8a";
+      ctx.beginPath();
+      ctx.moveTo(0, 10);
+      ctx.quadraticCurveTo(
+        Math.cos(ang) * 65,
+        Math.sin(ang) * 65,
+        Math.cos(ang) * 105 + Math.sin(this.floatAngle * 3 + i) * 18,
+        Math.sin(ang) * 105
+      );
+      ctx.stroke();
+    }
+
+    // Chifres Monstruosos
+    ctx.fillStyle = "#1e0b2a";
+    ctx.beginPath();
+    ctx.moveTo(-35, -30);
+    ctx.quadraticCurveTo(-65, -80, -25, -70);
+    ctx.lineTo(-20, -35);
+    ctx.fill();
+    ctx.beginPath();
+    ctx.moveTo(35, -30);
+    ctx.quadraticCurveTo(65, -80, 25, -70);
+    ctx.lineTo(20, -35);
+    ctx.fill();
+
+    // Olhos Flamejantes Ameaçadores
+    ctx.fillStyle = isEnraged ? "#ff3838" : "#f1c40f";
+    ctx.beginPath();
+    ctx.ellipse(-26, -10, 14, 8 + Math.sin(this.floatAngle) * 3, 0, 0, Math.PI * 2);
+    ctx.ellipse(26, -10, 14, 8 + Math.sin(this.floatAngle) * 3, 0, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Pupilas incandescentes
+    ctx.fillStyle = "#ffffff";
+    ctx.beginPath();
+    ctx.arc(-24, -10, 4, 0, Math.PI * 2);
+    ctx.arc(28, -10, 4, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Boca cavernosa com dentes afiados
+    ctx.fillStyle = "#0c0413";
+    ctx.beginPath();
+    ctx.arc(0, 20, 26, 0.2, Math.PI - 0.2);
+    ctx.fill();
+    ctx.strokeStyle = "#ff4757";
+    ctx.lineWidth = 3;
+    ctx.stroke();
+
+    // Dentes
+    ctx.fillStyle = "#f5f6fa";
+    [-16, -8, 0, 8, 16].forEach(dx => {
+      ctx.beginPath();
+      ctx.moveTo(dx, 20);
+      ctx.lineTo(dx + 4, 28);
+      ctx.lineTo(dx + 8, 20);
+      ctx.fill();
+    });
+
+    ctx.restore();
+
+    // BARRA DE VIDA CINEMATOGRÁFICA
+    const barW = 420;
+    const barH = 24;
+    const barX = (canvas.width - barW) / 2;
+    const barY = 62;
+
+    ctx.fillStyle = "rgba(10, 14, 24, 0.9)";
+    ctx.fillRect(barX - 4, barY - 4, barW + 8, barH + 8);
+
+    const ratio = Math.max(0, this.hp / this.maxHp);
+    const grad = ctx.createLinearGradient(barX, barY, barX + barW, barY);
+    grad.addColorStop(0, "#ff4757");
+    grad.addColorStop(1, isEnraged ? "#ff6b81" : "#ffd152");
+    ctx.fillStyle = grad;
+    ctx.fillRect(barX, barY, barW * ratio, barH);
+
+    ctx.strokeStyle = "#ffd152";
+    ctx.lineWidth = 2.5;
+    ctx.strokeRect(barX - 4, barY - 4, barW + 8, barH + 8);
+
+    ctx.fillStyle = "#ffffff";
+    ctx.font = "bold 13px Fredoka";
+    ctx.textAlign = "center";
+    ctx.fillText("👾 O DEVORADOR DAS SOMBRAS (CHEFÃO FINAL)", canvas.width / 2, barY - 8);
+  }
+}
+
+// ==============================================================
+// 6. RENDERIZADORES DE CENÁRIOS RICOS (DIREÇÃO DE ARTE DAS 5 FASES)
+// ==============================================================
+class EnvironmentRenderer {
+
+  // FASE 1: FLORESTA VERDE ENCANTADA
+  static drawForestDay(camX) {
+    // Céu azul solar vibrante
+    const sky = ctx.createLinearGradient(0, 0, 0, canvas.height);
+    sky.addColorStop(0, "#48dbfb");
+    sky.addColorStop(0.6, "#c7ecee");
+    sky.addColorStop(1, "#badc58");
+    ctx.fillStyle = sky;
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    // Raios de Sol (God Rays)
+    ctx.fillStyle = "rgba(255, 255, 255, 0.12)";
+    for (let r = 0; r < 5; r++) {
+      ctx.beginPath();
+      ctx.moveTo(150 + r * 160, 0);
+      ctx.lineTo(260 + r * 180, 540);
+      ctx.lineTo(210 + r * 180, 540);
+      ctx.lineTo(100 + r * 160, 0);
+      ctx.fill();
+    }
+
+    // Nuvens macias animadas
+    ctx.fillStyle = "rgba(255, 255, 255, 0.85)";
+    const cloudOffset = (Date.now() * 0.015) % 1200;
+    for (let c = 0; c < 4; c++) {
+      const cx = (c * 350 + cloudOffset) % 1300 - 150 - camX * 0.2;
+      ctx.beginPath();
+      ctx.arc(cx, 80 + c * 20, 35, 0, Math.PI * 2);
+      ctx.arc(cx + 30, 70 + c * 20, 45, 0, Math.PI * 2);
+      ctx.arc(cx + 65, 80 + c * 20, 32, 0, Math.PI * 2);
+      ctx.fill();
+    }
+
+    // Montanhas verdejantes ao fundo (Paralaxe 1)
+    ctx.fillStyle = "#6ab04c";
+    for (let m = 0; m < 7; m++) {
+      ctx.beginPath();
+      ctx.arc(m * 360 - camX * 0.3, 480, 220, Math.PI, 0);
+      ctx.fill();
+    }
+
+    // Árvores Frondosas de Segundo Plano (Paralaxe 2)
+    for (let t = 0; t < 12; t++) {
+      const tx = t * 200 - camX * 0.55;
+      // Tronco
+      ctx.fillStyle = "#795548";
+      ctx.fillRect(tx + 22, 330, 26, 120);
+      // Copa verde exuberante
+      ctx.fillStyle = "#2ecc71";
+      ctx.beginPath();
+      ctx.arc(tx + 35, 310, 48, 0, Math.PI * 2);
+      ctx.arc(tx + 15, 330, 38, 0, Math.PI * 2);
+      ctx.arc(tx + 55, 330, 38, 0, Math.PI * 2);
+      ctx.fill();
+    }
+  }
+
+  // FASE 2: FLORESTA MÁGICA NOTURNA
+  static drawForestNight(camX) {
+    // Céu azul-noite profundo (SEM ficar roxo genérico)
+    const sky = ctx.createLinearGradient(0, 0, 0, canvas.height);
+    sky.addColorStop(0, "#051622");
+    sky.addColorStop(0.6, "#0a2e38");
+    sky.addColorStop(1, "#11382b");
+    ctx.fillStyle = sky;
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    // Lua Cheia Gigante Iluminada
+    const moonGrad = ctx.createRadialGradient(800 - camX * 0.1, 90, 10, 800 - camX * 0.1, 90, 60);
+    moonGrad.addColorStop(0, "#ffffff");
+    moonGrad.addColorStop(0.6, "#dff9fb");
+    moonGrad.addColorStop(1, "rgba(223, 249, 251, 0)");
+    ctx.fillStyle = moonGrad;
+    ctx.beginPath();
+    ctx.arc(800 - camX * 0.1, 90, 60, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Estrelas cintilantes
+    ctx.fillStyle = "#f5cd79";
+    for (let s = 0; s < 30; s++) {
+      const sx = (s * 73) % 960;
+      const sy = (s * 37) % 240;
+      const pulse = Math.sin(Date.now() * 0.003 + s) * 1.5;
+      ctx.fillRect(sx, sy, 2 + pulse, 2 + pulse);
+    }
+
+    // Árvores ancestrais noturnas verde-escuras
+    for (let t = 0; t < 12; t++) {
+      const tx = t * 210 - camX * 0.55;
+      ctx.fillStyle = "#1b2a26";
+      ctx.fillRect(tx + 22, 330, 28, 120);
+      // Copa verde profundo
+      ctx.fillStyle = "#103b2b";
+      ctx.beginPath();
+      ctx.arc(tx + 36, 300, 52, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Cogumelos bioluminescentes ciano no tronco
+      ctx.fillStyle = "#2ed573";
+      ctx.beginPath();
+      ctx.arc(tx + 22, 380, 5, 0, Math.PI * 2);
+      ctx.arc(tx + 48, 395, 6, 0, Math.PI * 2);
+      ctx.fill();
+    }
+  }
+
+  // FASE 3: MUNDO DOS DOCES E CORAÇÕES
+  static drawCandyWorld(camX) {
+    // Céu pastel suave de confeitaria
+    const sky = ctx.createLinearGradient(0, 0, 0, canvas.height);
+    sky.addColorStop(0, "#74b9ff");
+    sky.addColorStop(0.5, "#fab1a0");
+    sky.addColorStop(1, "#ffeaa7");
+    ctx.fillStyle = sky;
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    // Montanhas de chocolate e calda cremosa
+    ctx.fillStyle = "#5c3317";
+    for (let m = 0; m < 6; m++) {
+      ctx.beginPath();
+      ctx.arc(m * 380 - camX * 0.3, 490, 240, Math.PI, 0);
+      ctx.fill();
+      // Cobertura branca de glacê no topo da montanha
+      ctx.fillStyle = "#ffffff";
+      ctx.beginPath();
+      ctx.arc(m * 380 - camX * 0.3, 270, 45, 0, Math.PI);
+      ctx.fill();
+      ctx.fillStyle = "#5c3317";
+    }
+
+    // Pirulitos Gigantes Espiralados e Árvores de Algodão-Doce
+    for (let p = 0; p < 10; p++) {
+      const px = p * 240 - camX * 0.55;
+      // Bengala/Cabo doce
+      ctx.fillStyle = "#ffffff";
+      ctx.fillRect(px + 28, 290, 14, 160);
+      ctx.fillStyle = "#ff4757";
+      for (let s = 0; s < 6; s++) {
+        ctx.fillRect(px + 28, 300 + s * 24, 14, 8);
+      }
+      // Espiral do pirulito
+      ctx.fillStyle = p % 2 === 0 ? "#ff6b81" : "#00d2d3";
+      ctx.beginPath();
+      ctx.arc(px + 35, 270, 42, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.strokeStyle = "#ffffff";
+      ctx.lineWidth = 4;
+      ctx.beginPath();
+      ctx.arc(px + 35, 270, 24, 0, Math.PI * 1.5);
+      ctx.stroke();
+    }
+  }
+
+  // FASE 4: REINO DOS CRISTAIS
+  static drawCrystalCavern(camX) {
+    // Teto e profundidade de caverna escura
+    const sky = ctx.createLinearGradient(0, 0, 0, canvas.height);
+    sky.addColorStop(0, "#08131a");
+    sky.addColorStop(0.6, "#0d2b38");
+    sky.addColorStop(1, "#123b3b");
+    ctx.fillStyle = sky;
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    // Paredes de rocha esculpida e estalactites no teto
+    ctx.fillStyle = "#1e272e";
+    for (let c = 0; c < 18; c++) {
+      ctx.beginPath();
+      ctx.moveTo(c * 65 - (camX * 0.2) % 65, 0);
+      ctx.lineTo(c * 65 + 32 - (camX * 0.2) % 65, 85 + (c % 3) * 35);
+      ctx.lineTo(c * 65 + 65 - (camX * 0.2) % 65, 0);
+      ctx.fill();
+    }
+
+    // Grandes Cristais Prismáticos de Fundo
+    for (let k = 0; k < 11; k++) {
+      const kx = k * 210 - camX * 0.45;
+      const crystalColors = ["#00cec9", "#2ed573", "#ffd152", "#70a1ff"];
+      ctx.fillStyle = crystalColors[k % crystalColors.length];
+      ctx.beginPath();
+      ctx.moveTo(kx + 20, 450);
+      ctx.lineTo(kx + 45, 260 + (k % 4) * 30);
+      ctx.lineTo(kx + 70, 450);
+      ctx.fill();
+
+      // Faceta com brilho
+      ctx.fillStyle = "rgba(255, 255, 255, 0.35)";
+      ctx.beginPath();
+      ctx.moveTo(kx + 45, 260 + (k % 4) * 30);
+      ctx.lineTo(kx + 58, 450);
+      ctx.lineTo(kx + 70, 450);
+      ctx.fill();
+    }
+  }
+
+  // FASE 5: ARENA FINAL DO CHEFÃO
+  static drawBossArena() {
+    // Céu de eclipse e tempestade tempestuosa
+    const sky = ctx.createLinearGradient(0, 0, 0, canvas.height);
+    sky.addColorStop(0, "#0a030c");
+    sky.addColorStop(0.5, "#2c0e3b");
+    sky.addColorStop(1, "#5f1225");
+    ctx.fillStyle = sky;
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    // Vórtice sombrio circular no céu
+    const vortex = ctx.createRadialGradient(480, 140, 20, 480, 140, 160);
+    vortex.addColorStop(0, "#000000");
+    vortex.addColorStop(0.5, "#801336");
+    vortex.addColorStop(1, "rgba(0,0,0,0)");
+    ctx.fillStyle = vortex;
+    ctx.beginPath();
+    ctx.arc(480, 140, 160, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Colunas Gregas / Ancestrais em Ruínas
+    for (let col = 0; col < 7; col++) {
+      const cx = col * 155 + 20;
+      ctx.fillStyle = "#2d3436";
+      ctx.fillRect(cx, 220, 36, 230);
+      // Capitel e detalhes da coluna
+      ctx.fillStyle = "#636e72";
+      ctx.fillRect(cx - 6, 212, 48, 12);
+      ctx.fillRect(cx - 4, 438, 44, 12);
+    }
+
+    // Braseiros com Fogo Vivo na Arena
+    [100, 860].forEach(bx => {
+      // Pedestal
+      ctx.fillStyle = "#1e272e";
+      ctx.fillRect(bx - 12, 380, 24, 70);
+      // Tigela de fogo
+      ctx.beginPath();
+      ctx.arc(bx, 380, 20, 0, Math.PI);
+      ctx.fill();
+      // Chamas animadas
+      const flameH = 25 + Math.sin(Date.now() * 0.02 + bx) * 6;
+      ctx.fillStyle = "#ff4757";
+      ctx.beginPath();
+      ctx.moveTo(bx - 14, 380);
+      ctx.quadraticCurveTo(bx, 380 - flameH, bx + 14, 380);
+      ctx.fill();
+      ctx.fillStyle = "#ffd152";
+      ctx.beginPath();
+      ctx.moveTo(bx - 8, 380);
+      ctx.quadraticCurveTo(bx, 380 - flameH * 0.65, bx + 8, 380);
+      ctx.fill();
+    });
+  }
+}
+
+// ==============================================================
+// 7. DESENHISTA DE PLATAFORMAS TEMÁTICAS
+// ==============================================================
+class PlatformRenderer {
+  static drawPlatform(p, phase) {
+    if (phase === 1) {
+      // FASE 1: Troncos de Madeira Natural e Grama Viva
+      ctx.fillStyle = "#2ecc71"; // Topo da grama
+      ctx.fillRect(p.x, p.y, p.w, 9);
+      // Lâminas de grama vivas
+      ctx.fillStyle = "#27ae60";
+      for (let g = 0; g < p.w; g += 8) {
+        ctx.fillRect(p.x + g, p.y - 3, 3, 4);
+      }
+      // Madeira sólida
+      ctx.fillStyle = "#795548";
+      ctx.fillRect(p.x, p.y + 9, p.w, p.h - 9);
+      // Casca de madeira
+      ctx.fillStyle = "#5d4037";
+      for (let w = 8; w < p.w; w += 24) {
+        ctx.fillRect(p.x + w, p.y + 12, 10, p.h - 14);
+      }
+    } else if (phase === 2) {
+      // FASE 2: Pedras Ancestrais de Musgo Noturno
+      ctx.fillStyle = "#10ac84";
+      ctx.fillRect(p.x, p.y, p.w, 8);
+      ctx.fillStyle = "#1b2a26";
+      ctx.fillRect(p.x, p.y + 8, p.w, p.h - 8);
+      // Runas luminosas ciano
+      ctx.fillStyle = "#1dd1a1";
+      for (let r = 12; r < p.w; r += 28) {
+        ctx.fillRect(p.x + r, p.y + 12, 6, 4);
+      }
+    } else if (phase === 3) {
+      // FASE 3: Marshmallows e Biscoitos Wafers com Glacê Derretido
+      ctx.fillStyle = "#ff9ff3"; // Glacê rosa
+      ctx.beginPath();
+      ctx.roundRect(p.x, p.y, p.w, 10, [6, 6, 0, 0]);
+      ctx.fill();
+      // Gotas de cobertura de açúcar
+      ctx.fillStyle = "#ffffff";
+      for (let d = 10; d < p.w; d += 22) {
+        ctx.beginPath();
+        ctx.arc(p.x + d, p.y + 10, 4, 0, Math.PI);
+        ctx.fill();
+      }
+      // Wafer de caramelo
+      ctx.fillStyle = "#feca57";
+      ctx.fillRect(p.x, p.y + 10, p.w, p.h - 10);
+      ctx.fillStyle = "#ee5253";
+      for (let k = 6; k < p.w; k += 18) {
+        ctx.fillRect(p.x + k, p.y + 14, 4, 4);
+      }
+    } else if (phase === 4) {
+      // FASE 4: Rocha Escura com Incrustações de Cristais
+      ctx.fillStyle = "#00d2d3";
+      ctx.fillRect(p.x, p.y, p.w, 6);
+      ctx.fillStyle = "#222f3e";
+      ctx.fillRect(p.x, p.y + 6, p.w, p.h - 6);
+      ctx.fillStyle = "#54a0ff";
+      for (let c = 10; c < p.w; c += 24) {
+        ctx.beginPath();
+        ctx.moveTo(p.x + c, p.y + 14);
+        ctx.lineTo(p.x + c + 4, p.y + 8);
+        ctx.lineTo(p.x + c + 8, p.y + 14);
+        ctx.fill();
+      }
+    } else {
+      // FASE 5: Lajotas Rúnicas de Pedra Antiga da Arena
+      ctx.fillStyle = "#ffd152";
+      ctx.fillRect(p.x, p.y, p.w, 6);
+      ctx.fillStyle = "#2d3436";
+      ctx.fillRect(p.x, p.y + 6, p.w, p.h - 6);
+      // Marcações de lajota de combate
+      ctx.fillStyle = "#e17055";
+      for (let b = 15; b < p.w; b += 35) {
+        ctx.fillRect(p.x + b, p.y + 12, 16, 4);
+      }
+    }
+  }
+}
+
+// ==============================================================
+// 8. CONSTRUTOR DE MUNDOS E ENTIDADES AMBIENTAIS
+// ==============================================================
+class LevelBuilder {
+  static setupPhase(phaseNum) {
+    GAME_STATE.phase = phaseNum;
+    GAME_STATE.objectiveCount = 0;
+    GAME_STATE.items = [];
+    GAME_STATE.traps = [];
+    GAME_STATE.platforms = [];
+    GAME_STATE.projectiles = [];
+    GAME_STATE.ambientEntities = [];
+    GAME_STATE.boss = null;
+
+    document.getElementById('m-attack').style.display = (phaseNum === 5) ? 'flex' : 'none';
+
+    // Gera entidades ambientais específicas de cada fase
+    if (phaseNum === 1) {
+      // Borboletas voando
+      for (let i = 0; i < 6; i++) {
+        GAME_STATE.ambientEntities.push({
+          x: 200 + i * 300,
+          y: 200 + (i % 3) * 60,
+          color: i % 2 === 0 ? "#ffd152" : "#54a0ff",
+          wing: 0
+        });
+      }
+    } else if (phaseNum === 2) {
+      // Vagalumes luminosos
+      for (let i = 0; i < 15; i++) {
+        GAME_STATE.ambientEntities.push({
+          x: Math.random() * 2000,
+          y: 180 + Math.random() * 260,
+          pulse: Math.random() * Math.PI,
+          speed: 0.8 + Math.random() * 0.8
+        });
+      }
+    }
+
+    // FASE 1: 5 LIVROS DO CONHECIMENTO + PARKOUR NA FLORESTA
+    if (phaseNum === 1) {
+      player.reset(80, 360);
+      this.createPlatformCourse();
+      [380, 740, 1100, 1450, 1820].forEach((x, i) => {
+        GAME_STATE.items.push({
+          x: x,
+          y: 270 - (i % 2) * 80,
+          w: 34,
+          h: 30,
+          type: 'book',
+          collected: false
+        });
+      });
+      updateHUDGoal("📚", "0 / 5");
+    }
+
+    // FASE 2: 5 PERGUNTAS DE GEOGRAFIA + FLORESTA NOTURNA
+    else if (phaseNum === 2) {
+      player.reset(80, 360);
+      this.createPlatformCourse();
+      const questions = geoBank.getFiveQuestions();
+      [390, 750, 1120, 1480, 1840].forEach((x, i) => {
+        GAME_STATE.items.push({
+          x: x,
+          y: 270 - (i % 2) * 75,
+          w: 36,
+          h: 36,
+          type: 'globe',
+          collected: false,
+          questionData: questions[i]
+        });
+      });
+      updateHUDGoal("🌎", "0 / 5");
+    }
+
+    // FASE 3: 5 CORAÇÕES DA GRATIDÃO + MUNDO DOS DOCES
+    else if (phaseNum === 3) {
+      player.reset(80, 360);
+      this.createPlatformCourse();
+      const msgs = heartBank.getFiveMessages();
+      [380, 730, 1100, 1460, 1820].forEach((x, i) => {
+        GAME_STATE.items.push({
+          x: x,
+          y: 260 - (i % 2) * 80,
+          w: 34,
+          h: 34,
+          type: 'heart',
+          collected: false,
+          message: msgs[i]
+        });
+      });
+      updateHUDGoal("❤️", "0 / 5");
+    }
+
+    // FASE 4: 5 CRISTAIS + CAVERNA SUBTERRÂNEA
+    else if (phaseNum === 4) {
+      player.reset(80, 360);
+      this.createPlatformCourse();
+      [400, 760, 1130, 1500, 1850].forEach((x, i) => {
+        GAME_STATE.items.push({
+          x: x,
+          y: 260 - (i % 2) * 80,
+          w: 32,
+          h: 34,
+          type: 'crystal',
+          collected: false
+        });
+      });
+      [560, 930, 1310, 1690].forEach(x => {
+        GAME_STATE.traps.push({ x: x, y: 432, w: 46, h: 18 });
+      });
+      updateHUDGoal("💎", "0 / 5");
+    }
+
+    // FASE 5: BATALHA FINAL NA ARENA DO CHEFÃO (SEM PARKOUR)
+    else if (phaseNum === 5) {
+      player.reset(120, 380);
+      GAME_STATE.platforms.push({ x: 0, y: 450, w: 960, h: 90 });
+      GAME_STATE.boss = new ShadowBoss();
+      updateHUDGoal("🖊️", "BATALHA!");
+    }
+
+    document.getElementById('hud-phase').textContent = `${phaseNum} / 5`;
+  }
+
+  static createPlatformCourse() {
+    GAME_STATE.platforms.push({ x: 0, y: 450, w: 2200, h: 90 });
+    const plats = [
+      { x: 310, y: 350, w: 140 },
+      { x: 520, y: 280, w: 130 },
+      { x: 690, y: 340, w: 140 },
+      { x: 880, y: 270, w: 130 },
+      { x: 1050, y: 330, w: 140 },
+      { x: 1240, y: 280, w: 140 },
+      { x: 1420, y: 340, w: 130 },
+      { x: 1610, y: 270, w: 140 },
+      { x: 1780, y: 330, w: 140 }
+    ];
+    plats.forEach(p => {
+      GAME_STATE.platforms.push({ x: p.x, y: p.y, w: p.w, h: 24 });
+    });
+  }
+}
+
+function updateHUDGoal(icon, text) {
+  document.getElementById('hud-goal-icon').textContent = icon;
+  document.getElementById('hud-goal').textContent = text;
+}
+
+function shootInk() {
+  if (GAME_STATE.phase !== 5 || !GAME_STATE.boss || player.attackCooldown > 0) return;
+  sfx.playShoot();
+  player.attackCooldown = 13;
+
+  const colors = ["#ff4757", "#2ed573", "#1e90ff", "#ffd152", "#9b59b6"];
+  const chosenColor = colors[Math.floor(Math.random() * colors.length)];
+
+  GAME_STATE.projectiles.push({
+    x: player.x + (player.facing === 1 ? player.w + 14 : -10),
+    y: player.y + 32,
+    vx: player.facing * 12,
+    vy: (Math.random() - 0.5) * 1.2,
+    r: 9,
+    color: chosenColor,
+    fromBoss: false
+  });
+}
+
+function addParticles(x, y, color, count = 12) {
+  for (let i = 0; i < count; i++) {
+    GAME_STATE.particles.push({
+      x: x,
+      y: y,
+      vx: (Math.random() - 0.5) * 6,
+      vy: (Math.random() - 0.5) * 6,
+      life: 1,
+      decay: 0.025 + Math.random() * 0.03,
+      color: color,
+      r: 3 + Math.random() * 4
+    });
+  }
+}
+
+function triggerPhaseTransition(nextPhase) {
+  if (GAME_STATE.transitioning) return;
+  GAME_STATE.transitioning = true;
+  GAME_STATE.nextPhaseTarget = nextPhase;
+  GAME_STATE.transitionTimer = 0;
+  GAME_STATE.transitionBanner = `FASE ${GAME_STATE.phase} CONCLUÍDA!`;
+  sfx.playPhaseComplete();
+  addParticles(player.x, player.y, "#ffd152", 30);
+}
+
+// ==========================================
+// 9. CONTROLES E EVENTOS
+// ==========================================
+const keys = {};
+
+window.addEventListener('keydown', e => {
+  if (["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight", "Space"].includes(e.code)) {
+    e.preventDefault();
+  }
+  keys[e.code] = true;
+  if (e.code === 'ArrowUp' || e.code === 'Space' || e.code === 'KeyW') {
+    player.jumpBufferTimer = 8;
+  }
+});
+
+window.addEventListener('keyup', e => {
+  keys[e.code] = false;
+});
+
+canvas.addEventListener('mousedown', e => {
+  sfx.init();
+  if (GAME_STATE.phase === 5 && e.button === 0) {
+    shootInk();
+  }
+});
+
+function bindTouchButton(elemId, keyCodes) {
+  const el = document.getElementById(elemId);
+  if (!el) return;
+  el.addEventListener('touchstart', (e) => {
+    e.preventDefault();
+    sfx.init();
+    keyCodes.forEach(k => { keys[k] = true; });
+    if (keyCodes.includes('Space')) player.jumpBufferTimer = 8;
+  });
+  el.addEventListener('touchend', (e) => {
+    e.preventDefault();
+    keyCodes.forEach(k => { keys[k] = false; });
+  });
+}
+bindTouchButton('m-left', ['ArrowLeft', 'KeyA']);
+bindTouchButton('m-right', ['ArrowRight', 'KeyD']);
+bindTouchButton('m-jump', ['Space', 'ArrowUp']);
+
+document.getElementById('m-attack').addEventListener('touchstart', (e) => {
+  e.preventDefault();
+  sfx.init();
+  shootInk();
+});
+
+if ('ontouchstart' in window || navigator.maxTouchPoints > 0) {
+  document.getElementById('mobile-controls').style.display = 'block';
+}
+
+const btnFullscreen = document.getElementById('btn-fullscreen');
+btnFullscreen.onclick = () => {
+  if (!document.fullscreenElement) {
+    document.documentElement.requestFullscreen().catch(() => {});
+  } else {
+    document.exitFullscreen().catch(() => {});
+  }
+};
+document.addEventListener('fullscreenchange', () => {
+  btnFullscreen.textContent = document.fullscreenElement ? "🗗 Restaurar" : "⛶ Tela Cheia";
+});
+
+// ==========================================
+// 10. MODAL QUIZ & NOTIFICAÇÕES
+// ==========================================
+const quizModal = document.getElementById('quiz-modal');
+const quizTitle = document.getElementById('quiz-title');
+const quizQuestion = document.getElementById('quiz-question');
+const quizOptions = document.getElementById('quiz-options');
+const quizFeedback = document.getElementById('quiz-feedback');
+let currentActiveItem = null;
+
+function openGeographyQuestion(item) {
+  currentActiveItem = item;
+  GAME_STATE.paused = true;
+  quizFeedback.textContent = '';
+  quizTitle.textContent = `🌎 DESAFIO DE GEOGRAFIA (${GAME_STATE.objectiveCount + 1}/5)`;
+  quizQuestion.textContent = item.questionData.question;
+  quizOptions.innerHTML = '';
+
+  item.questionData.options.forEach(opt => {
+    const btn = document.createElement('button');
+    btn.className = 'opt-btn';
+    btn.textContent = opt;
+    btn.onclick = () => handleAnswer(opt, item.questionData.answer, btn);
+    quizOptions.appendChild(btn);
+  });
+  quizModal.style.display = 'flex';
+}
+
+function handleAnswer(selected, correct, btn) {
+  const allBtns = quizOptions.querySelectorAll('.opt-btn');
+  allBtns.forEach(b => b.disabled = true);
+
+  if (selected === correct) {
+    btn.classList.add('correct');
+    quizFeedback.style.color = '#2ed573';
+    quizFeedback.textContent = '🌟 CORRETO! Resposta brilhante!';
+    sfx.playCorrect();
+    GAME_STATE.score += 200;
+
+    setTimeout(() => {
+      quizModal.style.display = 'none';
+      GAME_STATE.paused = false;
+      currentActiveItem.collected = true;
+      GAME_STATE.objectiveCount++;
+      updateHUDGoal("🌎", `${GAME_STATE.objectiveCount} / 5`);
+      addParticles(player.x, player.y, "#2ed573", 20);
+
+      if (GAME_STATE.objectiveCount >= 5) {
+        triggerPhaseTransition(3);
+      }
+    }, 900);
+  } else {
+    btn.classList.add('wrong');
+    quizFeedback.style.color = '#ff4757';
+    quizFeedback.textContent = `❌ Quase! A resposta correta era: ${correct}`;
+    sfx.playWrong();
+
+    setTimeout(() => {
+      quizModal.style.display = 'none';
+      GAME_STATE.paused = false;
+    }, 1300);
+  }
+}
+
+const toast = document.getElementById('heart-toast');
+const toastBody = document.getElementById('toast-body');
+let toastTimer = null;
+
+function showHeartMessage(msg) {
+  toastBody.textContent = `"${msg}"`;
+  toast.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => {
+    toast.classList.remove('show');
+  }, 4200);
+}
+
+// ==========================================
+// 11. ATUALIZAÇÃO DA FÍSICA
+// ==========================================
+let cameraX = 0;
+
+function update() {
+  if (GAME_STATE.paused || GAME_STATE.over || GAME_STATE.won) return;
+
+  if (GAME_STATE.transitioning) {
+    GAME_STATE.transitionTimer++;
+    if (GAME_STATE.transitionTimer < 40) {
+      GAME_STATE.transitionAlpha = GAME_STATE.transitionTimer / 40;
+    } else if (GAME_STATE.transitionTimer === 40) {
+      LevelBuilder.setupPhase(GAME_STATE.nextPhaseTarget);
+    } else if (GAME_STATE.transitionTimer > 40 && GAME_STATE.transitionTimer < 70) {
+      GAME_STATE.transitionAlpha = 1 - (GAME_STATE.transitionTimer - 40) / 30;
+    } else {
+      GAME_STATE.transitioning = false;
+      GAME_STATE.transitionAlpha = 0;
+    }
+    return;
+  }
+
+  if (player.invulnerableTime > 0) player.invulnerableTime--;
+  if (player.attackCooldown > 0) player.attackCooldown--;
+
+  const leftPressed = keys['ArrowLeft'] || keys['KeyA'];
+  const rightPressed = keys['ArrowRight'] || keys['KeyD'];
+
+  if (leftPressed && !rightPressed) {
+    player.vx = -player.speed;
+    player.facing = -1;
+    player.animTime += 0.22;
+  } else if (rightPressed && !leftPressed) {
+    player.vx = player.speed;
+    player.facing = 1;
+    player.animTime += 0.22;
+  } else {
+    player.vx = 0;
+  }
+
+  player.vy += 0.58;
+  player.x += player.vx;
+  player.y += player.vy;
+
+  if (player.grounded) {
+    player.coyoteTimer = 7;
+  } else if (player.coyoteTimer > 0) {
+    player.coyoteTimer--;
+  }
+
+  if (player.jumpBufferTimer > 0) {
+    player.jumpBufferTimer--;
+    if (player.coyoteTimer > 0) {
+      player.vy = player.jumpStrength;
+      player.coyoteTimer = 0;
+      player.jumpBufferTimer = 0;
+      player.grounded = false;
+      player.squishY = 1.25;
+      sfx.playJump();
+    }
+  }
+
+  player.squishY += (1 - player.squishY) * 0.15;
+
+  if (GAME_STATE.phase === 5) {
+    if (player.x < 15) player.x = 15;
+    if (player.x > 900) player.x = 900;
+    cameraX = 0;
+  } else {
+    cameraX += (player.x - 260 - cameraX) * 0.08;
+    if (cameraX < 0) cameraX = 0;
+    if (cameraX > 1300) cameraX = 1300;
+  }
+
+  player.grounded = false;
+  GAME_STATE.platforms.forEach(plat => {
+    if (
+      player.x + player.w > plat.x &&
+      player.x < plat.x + plat.w &&
+      player.y + player.h >= plat.y &&
+      player.y + player.h <= plat.y + 20 &&
+      player.vy >= 0
+    ) {
+      player.y = plat.y - player.h;
+      player.vy = 0;
+      player.grounded = true;
+    }
+  });
+
+  if (player.y > 580) {
+    player.reset(80, 360);
+    takePlayerDamage();
+  }
+
+  if (!GAME_STATE.transitioning) {
+    GAME_STATE.items.forEach(item => {
+      if (!item.collected && checkOverlap(player, item)) {
+        if (item.type === 'book') {
+          item.collected = true;
+          sfx.playCollect();
+          GAME_STATE.objectiveCount++;
+          GAME_STATE.score += 100;
+          addParticles(item.x + 16, item.y + 16, "#ffd152", 15);
+          updateHUDGoal("📚", `${GAME_STATE.objectiveCount} / 5`);
+          if (GAME_STATE.objectiveCount >= 5) triggerPhaseTransition(2);
+        } else if (item.type === 'globe') {
+          openGeographyQuestion(item);
+        } else if (item.type === 'heart') {
+          item.collected = true;
+          sfx.playCollect();
+          GAME_STATE.objectiveCount++;
+          GAME_STATE.score += 150;
+          addParticles(item.x + 17, item.y + 17, "#ff4757", 18);
+          showHeartMessage(item.message);
+          updateHUDGoal("❤️", `${GAME_STATE.objectiveCount} / 5`);
+          if (GAME_STATE.objectiveCount >= 5) triggerPhaseTransition(4);
+        } else if (item.type === 'crystal') {
+          item.collected = true;
+          sfx.playCollect();
+          GAME_STATE.objectiveCount++;
+          GAME_STATE.score += 120;
+          addParticles(item.x + 16, item.y + 17, "#00d2d3", 18);
+          updateHUDGoal("💎", `${GAME_STATE.objectiveCount} / 5`);
+          if (GAME_STATE.objectiveCount >= 5) triggerPhaseTransition(5);
+        }
+      }
+    });
+
+    GAME_STATE.traps.forEach(trap => {
+      if (checkOverlap(player, trap)) {
+        takePlayerDamage();
+        player.vy = -7;
+        player.x -= 30;
+      }
+    });
+  }
+
+  if (GAME_STATE.phase === 5 && GAME_STATE.boss) {
+    GAME_STATE.boss.update();
+
+    for (let i = GAME_STATE.projectiles.length - 1; i >= 0; i--) {
+      const p = GAME_STATE.projectiles[i];
+      p.x += p.vx;
+      p.y += p.vy;
+
+      if (!p.fromBoss && checkOverlapCircleRect(p, GAME_STATE.boss)) {
+        GAME_STATE.boss.takeDamage(4);
+        addParticles(p.x, p.y, p.color, 14);
+        GAME_STATE.projectiles.splice(i, 1);
+        continue;
+      }
+
+      if (p.fromBoss && checkOverlapCircleRect(p, player)) {
+        takePlayerDamage();
+        addParticles(p.x, p.y, "#e84118", 12);
+        GAME_STATE.projectiles.splice(i, 1);
+        continue;
+      }
+
+      if (p.x < -30 || p.x > 1020 || p.y > 540) {
+        GAME_STATE.projectiles.splice(i, 1);
+      }
+    }
+  }
+
+  for (let i = GAME_STATE.particles.length - 1; i >= 0; i--) {
+    const pt = GAME_STATE.particles[i];
+    pt.x += pt.vx;
+    pt.y += pt.vy;
+    pt.life -= pt.decay;
+    if (pt.life <= 0) GAME_STATE.particles.splice(i, 1);
+  }
+
+  document.getElementById('hud-score').textContent = GAME_STATE.score;
+  document.getElementById('hud-lives').textContent = GAME_STATE.lives;
+}
+
+function takePlayerDamage() {
+  if (player.invulnerableTime > 0) return;
+  sfx.playWrong();
+  player.invulnerableTime = 70;
+  GAME_STATE.lives--;
+
+  if (GAME_STATE.lives <= 0) {
+    GAME_STATE.lives = 3;
+    LevelBuilder.setupPhase(GAME_STATE.phase);
+  }
+}
+
+function triggerVictory() {
+  GAME_STATE.won = true;
+  sfx.playVictory();
+  currentJourney++;
+  totalScore += GAME_STATE.score;
+  localStorage.setItem('dilma_journeys', currentJourney);
+  localStorage.setItem('dilma_score', totalScore);
+
+  document.getElementById('stat-journeys').textContent = currentJourney;
+  document.getElementById('stat-score').textContent = GAME_STATE.score;
+  document.getElementById('victory-screen').style.display = 'flex';
+}
+
+function checkOverlap(r1, r2) {
+  return (
+    r1.x < r2.x + r2.w &&
+    r1.x + r1.w > r2.x &&
+    r1.y < r2.y + r2.h &&
+    r1.y + r1.h > r2.y
+  );
+}
+
+function checkOverlapCircleRect(c, r) {
+  const closestX = Math.max(r.x, Math.min(c.x, r.x + r.w));
+  const closestY = Math.max(r.y, Math.min(c.y, r.y + r.h));
+  const dx = c.x - closestX;
+  const dy = c.y - closestY;
+  return (dx * dx + dy * dy) < (c.r * c.r);
+}
+
+// ==========================================
+// 12. RENDERIZAÇÃO GRÁFICA MESTRE
+// ==========================================
+function draw() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+  // 1. Renderiza o Fundo de cada uma das 5 Fases
+  if (GAME_STATE.phase === 1) {
+    EnvironmentRenderer.drawForestDay(cameraX);
+  } else if (GAME_STATE.phase === 2) {
+    EnvironmentRenderer.drawForestNight(cameraX);
+  } else if (GAME_STATE.phase === 3) {
+    EnvironmentRenderer.drawCandyWorld(cameraX);
+  } else if (GAME_STATE.phase === 4) {
+    EnvironmentRenderer.drawCrystalCavern(cameraX);
+  } else {
+    EnvironmentRenderer.drawBossArena();
+  }
+
+  ctx.save();
+  ctx.translate(-cameraX, 0);
+
+  // 2. Renderiza Entidades Ambientais (Borboletas / Vagalumes)
+  if (GAME_STATE.phase === 1) {
+    // Borboletas voando suavemente
+    GAME_STATE.ambientEntities.forEach(b => {
+      b.wing += 0.25;
+      const by = b.y + Math.sin(b.wing) * 12;
+      ctx.fillStyle = b.color;
+      ctx.beginPath();
+      ctx.ellipse(b.x, by, 7, 4 + Math.abs(Math.sin(b.wing)) * 4, 0, 0, Math.PI * 2);
+      ctx.fill();
+    });
+  } else if (GAME_STATE.phase === 2) {
+    // Vagalumes com brilho pulsante
+    GAME_STATE.ambientEntities.forEach(v => {
+      v.pulse += 0.05;
+      const glow = Math.sin(v.pulse) * 3 + 4;
+      ctx.fillStyle = "rgba(46, 213, 115, 0.35)";
+      ctx.beginPath();
+      ctx.arc(v.x, v.y, glow * 2.5, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillStyle = "#ffffff";
+      ctx.beginPath();
+      ctx.arc(v.x, v.y, glow * 0.7, 0, Math.PI * 2);
+      ctx.fill();
+    });
+  }
+
+  // 3. Renderiza as Plataformas Decoradas
+  GAME_STATE.platforms.forEach(p => {
+    PlatformRenderer.drawPlatform(p, GAME_STATE.phase);
+  });
+
+  // 4. Armadilhas (Fase 4: Espinhos de Cristal Obsidiana)
+  GAME_STATE.traps.forEach(trap => {
+    ctx.fillStyle = "#e84118";
+    for (let x = 0; x < trap.w; x += 15) {
+      ctx.beginPath();
+      ctx.moveTo(trap.x + x, trap.y + trap.h);
+      ctx.lineTo(trap.x + x + 7.5, trap.y);
+      ctx.lineTo(trap.x + x + 15, trap.y + trap.h);
+      ctx.fill();
+      // Brilho na ponta do espinho
+      ctx.fillStyle = "#ffd152";
+      ctx.fillRect(trap.x + x + 6.5, trap.y, 2, 4);
+      ctx.fillStyle = "#e84118";
+    }
+  });
+
+  // 5. Itens Colecionáveis com Desenho Vetorial Riquíssimo
+  const floatAnim = Math.sin(Date.now() * 0.005) * 6;
+  GAME_STATE.items.forEach(item => {
+    if (item.collected) return;
+    const iy = item.y + floatAnim;
+
+    if (item.type === 'book') {
+      // Livro do Conhecimento dourado encadernado
+      ctx.fillStyle = "#b33924";
+      ctx.beginPath();
+      ctx.roundRect(item.x, iy, 32, 24, 3);
+      ctx.fill();
+      ctx.fillStyle = "#f5f6fa";
+      ctx.fillRect(item.x + 3, iy + 3, 26, 18);
+      // Lombada dourada
+      ctx.fillStyle = "#ffd152";
+      ctx.fillRect(item.x + 13, iy + 2, 5, 20);
+      // Estrela de sabedoria na capa
+      ctx.fillStyle = "#ffd152";
+      ctx.beginPath();
+      ctx.arc(item.x + 8, iy + 12, 3, 0, Math.PI * 2);
+      ctx.fill();
+    } else if (item.type === 'globe') {
+      // Globo Terrestre de Geografia reluzente
+      ctx.fillStyle = "#1e90ff";
+      ctx.beginPath();
+      ctx.arc(item.x + 18, iy + 18, 16, 0, Math.PI * 2);
+      ctx.fill();
+      // Continentes verdes
+      ctx.fillStyle = "#2ed573";
+      ctx.beginPath();
+      ctx.arc(item.x + 14, iy + 14, 7, 0, Math.PI * 2);
+      ctx.arc(item.x + 22, iy + 20, 6, 0, Math.PI * 2);
+      ctx.fill();
+      // Suporte de metal dourado
+      ctx.strokeStyle = "#ffd152";
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+      ctx.arc(item.x + 18, iy + 18, 19, -0.5, Math.PI + 0.5);
+      ctx.stroke();
+    } else if (item.type === 'heart') {
+      // Coração da Gratidão com Pulso de Luz
+      const heartPulse = 1 + Math.sin(Date.now() * 0.008) * 0.1;
+      ctx.save();
+      ctx.translate(item.x + 17, iy + 17);
+      ctx.scale(heartPulse, heartPulse);
+      ctx.fillStyle = "#ff4757";
+      ctx.beginPath();
+      ctx.moveTo(0, 10);
+      ctx.bezierCurveTo(-15, 0, -15, -12, 0, -6);
+      ctx.bezierCurveTo(15, -12, 15, 0, 0, 10);
+      ctx.fill();
+      // Brilho especular no coração
+      ctx.fillStyle = "#ffffff";
+      ctx.beginPath();
+      ctx.arc(-4, -6, 2.5, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.restore();
+    } else if (item.type === 'crystal') {
+      // Cristal Diamante de 8 Facetas
+      ctx.fillStyle = "#00d2d3";
+      ctx.beginPath();
+      ctx.moveTo(item.x + 16, iy);
+      ctx.lineTo(item.x + 30, iy + 16);
+      ctx.lineTo(item.x + 16, iy + 34);
+      ctx.lineTo(item.x + 2, iy + 16);
+      ctx.closePath();
+      ctx.fill();
+      // Faceta de refração de luz
+      ctx.fillStyle = "rgba(255, 255, 255, 0.45)";
+      ctx.beginPath();
+      ctx.moveTo(item.x + 16, iy);
+      ctx.lineTo(item.x + 30, iy + 16);
+      ctx.lineTo(item.x + 16, iy + 24);
+      ctx.fill();
+    }
+  });
+
+  // 6. Projéteis com Brilho
+  GAME_STATE.projectiles.forEach(p => {
+    ctx.fillStyle = p.color;
+    ctx.beginPath();
+    ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.strokeStyle = "#ffffff";
+    ctx.lineWidth = 2.5;
+    ctx.stroke();
+  });
+
+  // 7. Partículas
+  GAME_STATE.particles.forEach(pt => {
+    ctx.globalAlpha = pt.life;
+    ctx.fillStyle = pt.color;
+    ctx.beginPath();
+    ctx.arc(pt.x, pt.y, pt.r, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.globalAlpha = 1.0;
+  });
+
+  // 8. Personagem Professora Dilma
+  player.draw();
+
+  // 9. Chefão Final na Arena
+  if (GAME_STATE.phase === 5 && GAME_STATE.boss) {
+    GAME_STATE.boss.draw();
+  }
+
+  ctx.restore();
+
+  // 10. Transição Cinematográfica de Fase (Fade & Banner)
+  if (GAME_STATE.transitioning) {
+    ctx.fillStyle = `rgba(5, 7, 14, ${GAME_STATE.transitionAlpha})`;
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    if (GAME_STATE.transitionAlpha > 0.4) {
+      ctx.fillStyle = "#ffd152";
+      ctx.font = "bold 34px Fredoka";
+      ctx.textAlign = "center";
+      ctx.fillText(GAME_STATE.transitionBanner, canvas.width / 2, canvas.height / 2 - 10);
+
+      ctx.fillStyle = "#ffffff";
+      ctx.font = "18px Fredoka";
+      ctx.fillText("Carregando o próximo mundo...", canvas.width / 2, canvas.height / 2 + 25);
+    }
+  }
+}
+
+function gameLoop() {
+  update();
+  draw();
+  requestAnimationFrame(gameLoop);
+}
+
+// ==========================================
+// 13. INICIALIZAÇÃO
+// ==========================================
+document.getElementById('btn-start').onclick = () => {
+  sfx.init();
+  document.getElementById('start-screen').style.display = 'none';
+  LevelBuilder.setupPhase(1);
+  gameLoop();
+};
+
+document.getElementById('btn-restart').onclick = () => {
+  document.getElementById('victory-screen').style.display = 'none';
+  GAME_STATE.won = false;
+  GAME_STATE.lives = 3;
+  GAME_STATE.score = 0;
+  LevelBuilder.setupPhase(1);
+};
+
+document.getElementById('btn-sound').onclick = (e) => {
+  sfx.enabled = !sfx.enabled;
+  e.target.textContent = sfx.enabled ? "🔊" : "🔇";
+};
+</script>
+</body>
+</html>
